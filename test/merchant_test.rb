@@ -16,6 +16,13 @@ class MerchantTest < Minitest::Test
     assert_instance_of Time, merchant.updated_at
   end
 
+  def test_it_adds_time_functions
+    merchant = Merchant.new({:id => 5, :name => "Turing School"})
+
+    assert_instance_of Time, merchant.created_at
+    assert_instance_of Time, merchant.updated_at
+  end
+
   def test_name_can_change
     merchant = Merchant.new({:id => 5, :name => "Turing School", :created_at => Time.now, :updated_at => Time.now})
     merchant.name = "New Name"
