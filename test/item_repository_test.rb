@@ -118,6 +118,7 @@ class ItemRepositoryTest < Minitest::Test
   def test_item_can_be_updated
     @item_repository.update(263395237, {
           :id          => 9,
+          :name        => "Pencil",
           :description => "You can use it to write super cool things",
           :unit_price  => BigDecimal.new(15.99,4),
           :merchant_id => 12334141,
@@ -128,6 +129,7 @@ class ItemRepositoryTest < Minitest::Test
     assert_equal "Pencil", @item_1.name
     assert_equal "You can use it to write super cool things", @item_1.description
     assert_equal BigDecimal.new(15.99,4), @item_1.unit_price
+
   end
 
   def test_items_can_be_deleted_by_id
