@@ -285,6 +285,10 @@ class SalesAnalystTest < Minitest::Test
     assert_instance_of BigDecimal, actual
   end
 
+  def test_it_can_find_all_invoice_items
+    assert_equal [], @sales_analyst.find_merchant_invoice_items_by_item(12339191)
+  end
+
   def test_it_finds_merchants_with_one_item
     assert_equal [@merchant_1, @merchant_3], @sales_analyst.merchants_with_only_one_item
   end
