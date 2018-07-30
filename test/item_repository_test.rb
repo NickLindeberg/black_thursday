@@ -69,6 +69,7 @@ class ItemRepositoryTest < Minitest::Test
   def test_it_finds_items_by_price
     assert_equal [], @item_repository.find_all_by_price(BigDecimal.new(25.99,4))
     assert_equal [@item_1], @item_repository.find_all_by_price(BigDecimal.new(10.99,4))
+    assert_equal [@item_1] , @item_repository.find_all_by_price(1099)
   end
 
   def test_finds_all_by_price_range
