@@ -38,9 +38,7 @@ class SalesAnalyst
   end
 
   def standard_deviation_of_prices
-    all_prices = @items.all.map do |item|
-      item.unit_price
-    end
+    all_prices = @items.all.map(&:unit_price)
     standard_deviation(all_prices, average_of_item_prices).to_s.to_d
   end
 
@@ -190,9 +188,7 @@ class SalesAnalyst
 
   def revenue_by_merchant(merchant_id)
     merchants_invoices = @invoices.find_all_by_merchant_id(merchant_id)
-    invoice_ids = merchants_invoices.map do |invoice|
-      invoice.id
-    end
+    invoice_ids = merchants_invoices.map(&:id)
     invoice_ids.inject(0) do |sum, invoice_id|
       if invoice_paid_in_full?(invoice_id)
         sum += invoice_total(invoice_id)
