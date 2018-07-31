@@ -266,10 +266,7 @@ class SalesAnalyst
   end
 
   def most_sold_item_for_merchant(merchant_id)
-    paid_invoices = paid_invoice_set(@invoices.find_all_by_merchant_id(merchant_id))
-    matched_invoice_items = paid_invoices.map do |invoice|
-      @invoice_items.find_all_by_invoice_id(invoice.id)
-    end.flatten
+    matched_invoice_items = paid_invoices_by_merchant(merchant_id)
     item_counts = matched_invoice_items.inject(Hash.new(0)) do |count, invoice_item|
       count[invoice_item.item_id] += invoice_item.quantity
       count
@@ -284,10 +281,7 @@ class SalesAnalyst
   end
 
   def best_item_for_merchant(merchant_id)
-    paid_invoices = paid_invoice_set(@invoices.find_all_by_merchant_id(merchant_id))
-    matched_invoice_items = paid_invoices.map do |invoice|
-      @invoice_items.find_all_by_invoice_id(invoice.id)
-    end.flatten
+    matched_invoice_items = paid_invoices_by_merchant(merchant_id)
     item_revenue = matched_invoice_items.inject(Hash.new(0)) do |count, invoice_item|
       count[invoice_item.item_id] += (invoice_item.unit_price * invoice_item.quantity)
       count
@@ -297,5 +291,12 @@ class SalesAnalyst
       revenue == max_revenue
     end
       @items.find_by_id(top_item_id[0])
+  end
+
+  def paid_invoices_by_merchant(merchant_id)
+    paid_invoices = paid_invoice_set(@invoices.find_all_by_merchant_id(merchant_id))
+    matched_invoice_items = paid_invoices.map do |invoice|
+      @invoice_items.find_all_by_invoice_id(invoice.id)
+    end.flatten
   end
 end
