@@ -2,7 +2,7 @@ require_relative 'test_helper'
 require_relative '../lib/sales_analyst'
 require_relative '../lib/sales_engine'
 require 'bigdecimal'
-require 'pry'
+require 'time'
 
 class SalesAnalystTest < Minitest::Test
 
@@ -218,6 +218,9 @@ class SalesAnalystTest < Minitest::Test
     assert_equal expected, @sales_analyst.weekday_breakdown
   end
 
+  def test_it_finds_top_days
+    assert_equal ["Saturday"], @sales_analyst.finds_top_days(4)
+  end
 
   def test_percentage_of_invoices_shipped_based_on_status
     invoice_5 = Invoice.new({:id => 10, :customer_id => 48, :merchant_id => 12339191, :status => :pending, :created_at => "2009-02-07", :updated_at => Time.now})
@@ -257,6 +260,11 @@ class SalesAnalystTest < Minitest::Test
     assert_equal false, @sales_analyst.invoice_paid_in_full?(5)
     assert_equal false, @sales_analyst.invoice_paid_in_full?(6)
     assert_equal true, @sales_analyst.invoice_paid_in_full?(10)
+  end
+
+  def test_it_finds_all_not_paid_invoices
+    expected = [@invoice_1, @invoice_2, @invoice_3]
+    assert_equal expected, @sales_analyst.pending_invoice_set
   end
 
   def test_it_finds_invoice_total
@@ -309,6 +317,18 @@ class SalesAnalystTest < Minitest::Test
 
     assert_equal 202.0, @sales_analyst.total_revenue_by_date(Time.parse("2009-02-07")).to_f
     assert_instance_of BigDecimal, @sales_analyst.total_revenue_by_date(Time.parse("2009-02-07"))
+  end
+
+  def test_it_finds_all_invoices_by_date
+    invoice_6 = Invoice.new({:id => 88, :customer_id => 26, :merchant_id => 12334141, :status => :pending, :created_at => "2009-03-07", :updated_at => Time.now})
+    invoice_7 = Invoice.new({:id => 200, :customer_id => 26, :merchant_id => 12334141, :status => :pending, :created_at => Time.parse("2009-03-07"), :updated_at => Time.now})
+
+    @invoices << invoice_6
+    @invoices << invoice_7
+
+    expected = [invoice_6, invoice_7]
+    assert_equal expected, @sales_analyst.find_invoices_by_date("2009-03-07")
+    assert_equal expected, @sales_analyst.find_invoices_by_date(Time.parse("2009-03-07"))
   end
 
   def test_it_finds_x_top_revenue_earners

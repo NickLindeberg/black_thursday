@@ -1,5 +1,4 @@
 require 'time'
-require 'pry'
 require 'date'
 require_relative 'sales_engine'
 
@@ -138,6 +137,13 @@ class SalesAnalyst
     end
   end
 
+  def top_days_by_invoice_count
+    average_by_day = @invoices.all.count / 7
+    st_dev_days = standard_deviation(weekday_breakdown.values, average_by_day)
+    top_day_occurance = average_by_day + st_dev_days
+    finds_top_days(top_day_occurance)
+  end
+
   def weekday_breakdown
     @invoices.all.inject(Hash.new(0)) do |days, invoice|
       days[invoice.created_at.strftime("%A")] += 1
@@ -145,12 +151,9 @@ class SalesAnalyst
     end
   end
 
-  def top_days_by_invoice_count
-    average_by_day = @invoices.all.count / 7
-    st_dev_days = standard_deviation(weekday_breakdown.values, average_by_day)
-    top_day_invoice_number = average_by_day + st_dev_days
+  def finds_top_days(top_day_threshold)
     top_pairs = weekday_breakdown.find_all do |day, number|
-      if number >= top_day_invoice_number
+      if number >= top_day_threshold
         day
       end
     end.flatten
@@ -224,9 +227,7 @@ class SalesAnalyst
   end
 
   def total_revenue_by_date(date)
-    invoices_by_date = @invoices.all.find_all do |invoice|
-      invoice.created_at.strftime("%F") == date.strftime("%F")
-    end
+    invoices_by_date = find_invoices_by_date(date)
     paid_invoices = paid_invoice_set(invoices_by_date)
     matched_invoice_items = paid_invoices.map do |invoice|
       @invoice_items.find_all_by_invoice_id(invoice.id)
@@ -236,9 +237,22 @@ class SalesAnalyst
     end
   end
 
+  def find_invoices_by_date(date)
+    date = Time.parse(date.to_s)
+    @invoices.all.find_all do |invoice|
+      invoice.created_at.strftime("%F") == date.strftime("%F")
+    end
+  end
+
   def paid_invoice_set(set_of_invoices)
     set_of_invoices.find_all do |invoice|
       invoice_paid_in_full?(invoice.id)
+    end
+  end
+
+  def pending_invoice_set
+    @invoices.all.find_all do |invoice|
+      !invoice_paid_in_full?(invoice.id)
     end
   end
 
@@ -254,10 +268,7 @@ class SalesAnalyst
   end
 
   def merchants_with_pending_invoices
-    pending_invoices = @invoices.all.find_all do |invoice|
-      !invoice_paid_in_full?(invoice.id)
-    end
-    merchant_ids = pending_invoices.map do |invoice|
+    merchant_ids = pending_invoice_set.map do |invoice|
       invoice.merchant_id
     end.uniq
     merchant_ids.map do |merchant_id|
