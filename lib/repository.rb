@@ -35,9 +35,7 @@ module Repository
   end
 
   def find_highest_id
-    highest_list_id = @list.max_by do |list_item|
-      list_item.id
-    end
+    highest_list_id = @list.max_by(&:id)
   end
 
   def delete(id)
