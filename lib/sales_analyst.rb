@@ -271,12 +271,16 @@ class SalesAnalyst
       count[invoice_item.item_id] += invoice_item.quantity
       count
     end
+    max_items = finds_max_quantity(item_counts)
+    max_items.map do |item_id, count|
+      @items.find_by_id(item_id)
+    end
+  end
+
+  def finds_max_quantity(item_counts)
     max_quantity = item_counts.values.max
     top_item_ids = item_counts.find_all do |item_id, count|
       count == max_quantity
-    end
-    top_item_ids.map do |item_id, count|
-      @items.find_by_id(item_id)
     end
   end
 
@@ -286,11 +290,15 @@ class SalesAnalyst
       count[invoice_item.item_id] += (invoice_item.unit_price * invoice_item.quantity)
       count
     end
+      top_item_id = finds_max_revenue(item_revenue)
+      @items.find_by_id(top_item_id[0])
+  end
+
+  def finds_max_revenue(item_revenue)
     max_revenue = item_revenue.values.max
     top_item_id = item_revenue.find do |item_id, revenue|
       revenue == max_revenue
     end
-      @items.find_by_id(top_item_id[0])
   end
 
   def paid_invoices_by_merchant(merchant_id)
