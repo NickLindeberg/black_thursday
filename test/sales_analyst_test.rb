@@ -2,7 +2,7 @@ require_relative 'test_helper'
 require_relative '../lib/sales_analyst'
 require_relative '../lib/sales_engine'
 require 'bigdecimal'
-require 'pry'
+require 'time'
 
 class SalesAnalystTest < Minitest::Test
 
@@ -218,6 +218,9 @@ class SalesAnalystTest < Minitest::Test
     assert_equal expected, @sales_analyst.weekday_breakdown
   end
 
+  def test_it_finds_top_days
+    assert_equal ["Saturday"], @sales_analyst.finds_top_days(4)
+  end
 
   def test_percentage_of_invoices_shipped_based_on_status
     invoice_5 = Invoice.new({:id => 10, :customer_id => 48, :merchant_id => 12339191, :status => :pending, :created_at => "2009-02-07", :updated_at => Time.now})
@@ -257,6 +260,11 @@ class SalesAnalystTest < Minitest::Test
     assert_equal false, @sales_analyst.invoice_paid_in_full?(5)
     assert_equal false, @sales_analyst.invoice_paid_in_full?(6)
     assert_equal true, @sales_analyst.invoice_paid_in_full?(10)
+  end
+
+  def test_it_finds_all_not_paid_invoices
+    expected = [@invoice_1, @invoice_2, @invoice_3]
+    assert_equal expected, @sales_analyst.pending_invoice_set
   end
 
   def test_it_finds_invoice_total
@@ -311,6 +319,18 @@ class SalesAnalystTest < Minitest::Test
     assert_instance_of BigDecimal, @sales_analyst.total_revenue_by_date(Time.parse("2009-02-07"))
   end
 
+  def test_it_finds_all_invoices_by_date
+    invoice_6 = Invoice.new({:id => 88, :customer_id => 26, :merchant_id => 12334141, :status => :pending, :created_at => "2009-03-07", :updated_at => Time.now})
+    invoice_7 = Invoice.new({:id => 200, :customer_id => 26, :merchant_id => 12334141, :status => :pending, :created_at => Time.parse("2009-03-07"), :updated_at => Time.now})
+
+    @invoices << invoice_6
+    @invoices << invoice_7
+
+    expected = [invoice_6, invoice_7]
+    assert_equal expected, @sales_analyst.find_invoices_by_date("2009-03-07")
+    assert_equal expected, @sales_analyst.find_invoices_by_date(Time.parse("2009-03-07"))
+  end
+
   def test_it_finds_x_top_revenue_earners
     expected = [@merchant_3, @merchant_2]
     assert_equal expected, @sales_analyst.top_revenue_earners(2)
@@ -342,6 +362,24 @@ class SalesAnalystTest < Minitest::Test
     assert_equal [item_9], @sales_analyst.most_sold_item_for_merchant(12337777)
   end
 
+  def test_it_finds_max_quantity_items
+    invoice_item_9 = InvoiceItem.new({:id => 6, :item_id => 7, :invoice_id => 10, :quantity => 3, :unit_price => BigDecimal.new(18.50, 4), :created_at => Time.now, :updated_at => Time.now})
+    invoice_item_22 = InvoiceItem.new({:id => 7, :item_id => 33, :invoice_id => 10, :quantity => 2, :unit_price => BigDecimal.new(5.99, 4), :created_at => Time.now, :updated_at => Time.now})
+    item_8 = Item.new({:id => 33, :name => "Cool Stuff", :description => "Use when you want to be cool", :unit_price  => BigDecimal.new(18.50,4), :merchant_id => 12337777, :created_at  => Time.now, :updated_at  => Time.now})
+    item_9 = Item.new({:id => 7, :name => "Laptop Covers", :description => "Use when you want to be cool", :unit_price  => BigDecimal.new(18.50,4), :merchant_id => 12337777, :created_at  => Time.now, :updated_at  => Time.now})
+
+    invoice_5 = Invoice.new({:id => 10, :customer_id => 48, :merchant_id => 12337777, :status => :pending, :created_at => "2009-02-07", :updated_at => Time.now})
+    @items << item_8
+    @items << item_9
+    @invoices << invoice_5
+    @invoice_items << invoice_item_9
+    @invoice_items << invoice_item_22
+
+    item_counts = {33 => 5, 88 => 5, 22 => 2}
+
+    assert_equal [[33,5], [88,5]], @sales_analyst.finds_max_quantity(item_counts)
+  end
+
   def test_it_finds_best_item_for_merchant
     invoice_item_9 = InvoiceItem.new({:id => 30, :item_id => 7, :invoice_id => 20, :quantity => 1, :unit_price => BigDecimal.new(1800.50, 4), :created_at => Time.now, :updated_at => Time.now})
     item_9 = Item.new({:id => 7, :name => "Laptop", :description => "Use when you want to be cool", :unit_price  => BigDecimal.new(1800.50,4), :merchant_id => 12337777, :created_at  => Time.now, :updated_at  => Time.now})
@@ -355,4 +393,24 @@ class SalesAnalystTest < Minitest::Test
 
     assert_equal item_9, @sales_analyst.best_item_for_merchant(12337777)
   end
+
+  def test_it_finds_max_revenue_items
+    invoice_item_9 = InvoiceItem.new({:id => 6, :item_id => 7, :invoice_id => 10, :quantity => 3, :unit_price => BigDecimal.new(18.50, 4), :created_at => Time.now, :updated_at => Time.now})
+    invoice_item_22 = InvoiceItem.new({:id => 7, :item_id => 33, :invoice_id => 10, :quantity => 2, :unit_price => BigDecimal.new(5.99, 4), :created_at => Time.now, :updated_at => Time.now})
+    item_8 = Item.new({:id => 33, :name => "Cool Stuff", :description => "Use when you want to be cool", :unit_price  => BigDecimal.new(18.50,4), :merchant_id => 12337777, :created_at  => Time.now, :updated_at  => Time.now})
+    item_9 = Item.new({:id => 7, :name => "Laptop Covers", :description => "Use when you want to be cool", :unit_price  => BigDecimal.new(18.50,4), :merchant_id => 12337777, :created_at  => Time.now, :updated_at  => Time.now})
+
+    invoice_5 = Invoice.new({:id => 10, :customer_id => 48, :merchant_id => 12337777, :status => :pending, :created_at => "2009-02-07", :updated_at => Time.now})
+    @items << item_8
+    @items << item_9
+    @invoices << invoice_5
+    @invoice_items << invoice_item_9
+    @invoice_items << invoice_item_22
+
+    item_revenue = {33 => BigDecimal.new(10.99, 5).to_f, 88 => BigDecimal.new(5.99, 5)}
+
+    assert_equal [33,10.99], @sales_analyst.finds_max_revenue(item_revenue)
+  end
+
+
 end

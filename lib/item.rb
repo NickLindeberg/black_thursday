@@ -12,17 +12,17 @@ class Item
                 :updated_at
 
   def initialize(information)
-    @id = information[:id].to_i
-    @name = information[:name]
+    @id          = information[:id].to_i
+    @name        = information[:name]
     @description = information[:description]
-    @unit_price = if information[:unit_price].class != BigDecimal
-        BigDecimal.new((information[:unit_price].to_f / 100), 10)
-      else
-        information[:unit_price]
-      end
+    @unit_price  = if information[:unit_price].class != BigDecimal
+                    BigDecimal.new((information[:unit_price].to_f / 100), 10)
+                  else
+                    information[:unit_price]
+                  end
     @merchant_id = information[:merchant_id].to_i
-    @created_at = Time.parse(information[:created_at].to_s)
-    @updated_at = Time.parse(information[:updated_at].to_s)
+    @created_at  = Time.parse(information[:created_at].to_s)
+    @updated_at  = Time.parse(information[:updated_at].to_s)
   end
 
   def unit_price_to_dollars
