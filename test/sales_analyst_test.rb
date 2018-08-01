@@ -409,8 +409,6 @@ class SalesAnalystTest < Minitest::Test
 
     item_revenue = {33 => BigDecimal.new(10.99, 5).to_f, 88 => BigDecimal.new(5.99, 5)}
 
-    assert_equal [33,10.99], @sales_analyst.finds_max_revenue(item_revenue)
+    assert_equal [33, 10.99], @sales_analyst.finds_max_revenue(item_revenue)
   end
-
-
 end
