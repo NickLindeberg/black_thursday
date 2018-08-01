@@ -153,9 +153,7 @@ class SalesAnalyst
 
   def finds_top_days(top_day_threshold)
     top_pairs = weekday_breakdown.find_all do |day, number|
-      if number >= top_day_threshold
-        day
-      end
+      day if number >= top_day_threshold
     end.flatten
     top_pairs.find_all do |days|
       days.class == String
@@ -283,7 +281,7 @@ class SalesAnalyst
       count
     end
     max_items = finds_max_quantity(item_counts)
-    max_items.map do |item_id, count|
+    max_items.map do |item_id, _|
       @items.find_by_id(item_id)
     end
   end
@@ -301,8 +299,8 @@ class SalesAnalyst
       count[invoice_item.item_id] += (invoice_item.unit_price * invoice_item.quantity)
       count
     end
-      top_item_id = finds_max_revenue(item_revenue)
-      @items.find_by_id(top_item_id[0])
+    top_item_id = finds_max_revenue(item_revenue)
+    @items.find_by_id(top_item_id[0])
   end
 
   def finds_max_revenue(item_revenue)
@@ -314,7 +312,7 @@ class SalesAnalyst
 
   def paid_invoices_by_merchant(merchant_id)
     paid_invoices = paid_invoice_set(@invoices.find_all_by_merchant_id(merchant_id))
-    matched_invoice_items = paid_invoices.map do |invoice|
+    paid_invoices.map do |invoice|
       @invoice_items.find_all_by_invoice_id(invoice.id)
     end.flatten
   end
